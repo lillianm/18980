@@ -25,16 +25,36 @@ public class KmeansModel {
 		this.nbCluster = nbCluster;
 
 	}
+		
+	protected int getNearestCentroid(Point point) {
+			// Find nearest centroid
+			Integer nearestCentroidIndex = point.belongingId;
+			Center currentCentroid;
+			Double currentDistance;
+			for (int i = 0; i < this.centroids.length; i++) {
+				currentCentroid = this.centroids[i];
+				if (currentCentroid != null) {
+					currentDistance = currentCentroid.euclideanDistanceTo(point);
+					if (currentDistance < point.minDist) {
+						point.minDist = currentDistance;
+						nearestCentroidIndex = i;
+					}
+				}
+			}
 
-	public Integer classify(Point point) {
-		if (!this.isReady()) {
-			throw new IllegalStateException("KMeans is not ready yet");
+			return nearestCentroidIndex;
 		}
 
-		// Find nearest centroid
-		Integer nearestCentroidIndex = this.getNearestCentroid(point);
-		return nearestCentroidIndex;
-	}
+
+//	public Integer classify(Point point) {
+//		if (!this.isReady()) {
+//			throw new IllegalStateException("KMeans is not ready yet");
+//		}
+//
+//		// Find nearest centroid
+//		Integer nearestCentroidIndex = this.getNearestCentroid(point);
+//		return nearestCentroidIndex;
+//	}
 
 	protected int getNearestCentroidWithoutUpdate(Point p) {
 		// Find nearest centroid
@@ -60,34 +80,7 @@ public class KmeansModel {
 		return nearestCentroidIndex;
 	}
 
-	protected int getNearestCentroid(Point p) {
-		// Find nearest centroid
-		Integer nearestCentroidIndex = p.belongingId;
-
-		//Double minDistance = p.minDist;
-		Center currentCentroid;
-		Double currentDistance;
-		for (int i = 0; i < this.centroids.length; i++) {
-			currentCentroid = this.centroids[i];
-			if(currentCentroid == null) System.exit(0);
-			//System.out.println(currentCentroid);
-			if (currentCentroid != null) {
-				currentDistance = currentCentroid.euclideanDistanceTo(p);
-				if (currentDistance < p.minDist) {
-					p.minDist = currentDistance;
-					nearestCentroidIndex = i;
-				}
-			}
-		}
-
-		//p.belongingId = nearestCentroidIndex;
-		if(nearestCentroidIndex == -1){
-			System.out.println(p);
-		}
-		return nearestCentroidIndex;
-	}
-
-	/* calculate distance */
+		/* calculate distance */
 	public double euclideanDistance(Point p1, Point p2){
 		// the longitude of -180 to +180
 		// latitude is -90 to +90
