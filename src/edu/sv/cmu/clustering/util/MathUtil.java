@@ -1,4 +1,6 @@
-package edu.sv.cmu.clustering;
+package edu.sv.cmu.clustering.util;
+
+import edu.sv.cmu.clustering.Point;
 
 public class MathUtil {
 	/* calculate distance */

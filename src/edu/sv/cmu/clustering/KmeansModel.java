@@ -12,49 +12,25 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import edu.sv.cmu.clustering.util.MathUtil;
+
+//import edu.sv.cmu.clustering.exception.ClusterException;
+
 public class KmeansModel {
-	
+
+	public static boolean IS_DEBUG = false;
+
 	public List<Long> counts = null;
 	public List<Long> newcounts = null;
-	Center[] centroids;
+	public List<double[]> newCentroid = null;
+	public Center[] centroids;
 	public List<Point> initFeatures = new ArrayList<Point>();
-	private HashMap<Point, Integer> belongingId = new HashMap<Point, Integer>();
 	public Integer nbCluster;
 
-		public KmeansModel(Integer nbCluster) {
+	public KmeansModel(Integer nbCluster) {
 		this.nbCluster = nbCluster;
 
 	}
-		
-	protected int getNearestCentroid(Point point) {
-			// Find nearest centroid
-			Integer nearestCentroidIndex = point.belongingId;
-			Center currentCentroid;
-			Double currentDistance;
-			for (int i = 0; i < this.centroids.length; i++) {
-				currentCentroid = this.centroids[i];
-				if (currentCentroid != null) {
-					currentDistance = currentCentroid.euclideanDistanceTo(point);
-					if (currentDistance < point.minDist) {
-						point.minDist = currentDistance;
-						nearestCentroidIndex = i;
-					}
-				}
-			}
-
-			return nearestCentroidIndex;
-		}
-
-
-//	public Integer classify(Point point) {
-//		if (!this.isReady()) {
-//			throw new IllegalStateException("KMeans is not ready yet");
-//		}
-//
-//		// Find nearest centroid
-//		Integer nearestCentroidIndex = this.getNearestCentroid(point);
-//		return nearestCentroidIndex;
-//	}
 
 	protected int getNearestCentroidWithoutUpdate(Point p) {
 		// Find nearest centroid
@@ -73,29 +49,37 @@ public class KmeansModel {
 				}
 			}
 		}
-		//p.belongingId = nearestCentroidIndex;
-		if(nearestCentroidIndex == -1){
-			System.out.println(p);
-		}
+
 		return nearestCentroidIndex;
 	}
 
-		/* calculate distance */
-	public double euclideanDistance(Point p1, Point p2){
-		// the longitude of -180 to +180
-		// latitude is -90 to +90
+	protected int getNearestCentroid(Point point) {
 
-		double longitudeDiff = Math.abs(p1.longitude - p1.longitude);
-		longitudeDiff = Math.min(longitudeDiff, 360 - longitudeDiff);
-		double latitudeDiff  = Math.abs(p1.latitude - p2.latitude);
+		int nearestCentroidIndex = point.belongingId;
 
-		double dist =  Math.sqrt(longitudeDiff * longitudeDiff + latitudeDiff * latitudeDiff);
-		return dist;
+		Center currentCentroid;
+		Double currentDistance;
 
+		// looping through all centroids 
+		for (int i = 0; i < this.centroids.length; i++) {
+			currentCentroid = this.centroids[i];
+			if (currentCentroid != null) {
+				currentDistance = currentCentroid.euclideanDistanceTo(point);
+				if (currentDistance < point.minDist) {
+					point.minDist = currentDistance;
+					nearestCentroidIndex = i;
+				}
+			}
+		}
+
+		return nearestCentroidIndex;
 	}
 
 
 
+	public void calculateNewCentroids(){
+
+	}
 
 	public Integer updateCenter(Point point) {
 		if (!this.isReady()) {
@@ -158,12 +142,24 @@ public class KmeansModel {
 			this.initCentroids();
 		}
 	}
+	protected double[] computeDxs() {
+		double[] dxs = new double[this.initFeatures.size()];
 
-	/**
-	 * Init clusters using the k-means++ algorithm. (Arthur, D. and
-	 * Vassilvitskii, S. (2007). "k-means++: the advantages of careful seeding".
-	 * 
-	 */
+		int sum = 0;
+		Point features;
+		int nearestCentroidIndex;
+		Center nearestCentroid;
+		for (int i = 0; i < this.initFeatures.size(); i++) {
+			features = this.initFeatures.get(i);
+			nearestCentroidIndex = this.getNearestCentroidWithoutUpdate(features);
+			nearestCentroid = this.centroids[nearestCentroidIndex];
+			sum += Math.pow(nearestCentroid.euclideanDistanceTo(features), 2);
+			dxs[i] = sum;
+		}
+
+		return dxs;
+	}
+
 	protected void initCentroids() {
 		// Init counts
 		this.counts = new ArrayList<Long>(this.nbCluster);
@@ -177,111 +173,127 @@ public class KmeansModel {
 
 		// Choose one centroid uniformly at random from among the data points.
 		//generate centroid
-		int randIndex = random.nextInt(this.initFeatures.size());
-		Point tmp = this.initFeatures.get(0);
-		this.initFeatures.set(0, this.initFeatures.get(randIndex));
-		this.initFeatures.set(randIndex, tmp);
-
-		final Point randPoint = this.initFeatures.remove(random.nextInt(this.initFeatures.size()));
-
-		this.centroids[0] = new Center(randPoint);
+		Center firstCentroid = new Center(this.initFeatures.remove(random.nextInt(this.initFeatures.size())));
+		this.centroids[0] = firstCentroid;
 
 		double[] dxs;
 
 		for (int j = 1; j < this.nbCluster; j++) {
 			// For each data point x, compute D(x)
-			dxs = this.computeDxs(j);
+			dxs = this.computeDxs();
 
 			// Add one new data point as a center.
-			Point nextRandPoint;
 			double r = random.nextDouble() * dxs[dxs.length - 1];
+			
 			for (int i = 0; i < dxs.length; i++) {
+				
 				if (dxs[i] >= r) {
-					Point p = this.initFeatures.get(j);
-					this.initFeatures.set(j, this.initFeatures.get(i));
-					this.initFeatures.set(i,p );
-
-					nextRandPoint = this.initFeatures.get(j);
-					this.centroids[j] = new Center(nextRandPoint);
+					boolean duplicated  = false;
+					Point candidate = initFeatures.get(i);
+					for(int ii = 0;ii<j;ii++){
+						if(candidate.latitude == centroids[ii].latitude && candidate.longitude == centroids[ii].longitude){
+							duplicated = true;
+							break;
+						}
+					}
+					if(duplicated){continue;}
+					Center newCenter = new Center(this.initFeatures.remove(i));
+					this.centroids[j] = newCenter;
 					break;
 				}
 			}
-			System.out.println(centroids);
 		}
 
-		/* why ???? */
-		//this.initFeatures.clear();
-	}
-
-	/**
-	 * For each features in {@link KMeans#initFeatures}, compute D(x), the
-	 * distance between x and the nearest center that has already been chosen.
-	 * 
-	 * @return
-	 */
-	protected double[] computeDxs(int j) {
-		double[] dxs = new double[this.initFeatures.size()];
-
-		int sum = 0;
-		Point samplePoint;
-		int nearestCentroidIndex;
-		Center nearestCentroid;
-		for (int i = 0; i < this.initFeatures.size(); i++) {
-			samplePoint = this.initFeatures.get(i);
-			nearestCentroidIndex = this.getNearestCentroidWithoutUpdate(samplePoint);
-			nearestCentroid = this.centroids[nearestCentroidIndex];
-			sum += Math.pow(nearestCentroid.euclideanDistanceTo(samplePoint), 2);
-			dxs[i] = sum;
-		}
-		for(int i =0;i<=j;i++){
-			dxs[i] = Double.MAX_VALUE;
-		}
-
-		return dxs;
-	}
-
-	protected double computeDxsSum() {
-		double[] dxs = new double[this.initFeatures.size()];
-
-		//int totalSum = 0;
-		int sum = 0;
-		Point samplePoint;
-		int nearestCentroidIndex;
-		Center nearestCentroid;
-		for (int i = 0; i < this.initFeatures.size(); i++) {
-			samplePoint = this.initFeatures.get(i);
-			nearestCentroidIndex = this.getNearestCentroidWithoutUpdate(samplePoint);
-			nearestCentroid = this.centroids[nearestCentroidIndex];
-			sum += Math.pow(nearestCentroid.euclideanDistanceTo(samplePoint), 2);
-			//dxs[i] = sum;
-		}
-
-		return sum;
-	}
-
-	public void reset() {
-		this.counts = null;
-		this.centroids = null;
-		this.initFeatures = new ArrayList<Point>();
+		this.initFeatures.clear();
 	}
 
 
-	public void getDistribution(ArrayList<Point> points, Center[] centroids){
 
+/**
+ * For each features in {@link KMeans#initFeatures}, compute D(x), the
+ * distance between x and the nearest center that has already been chosen.
+ * 
+ * @return
+ */
+protected double[] computeDxs(int j) {
+	double[] dxs = new double[this.initFeatures.size()];
+
+	int sum = 0;
+	Point samplePoint;
+	int nearestCentroidIndex;
+	Center nearestCentroid;
+	for (int i = 0; i < this.initFeatures.size(); i++) {
+		samplePoint = this.initFeatures.get(i);
+		nearestCentroidIndex = this.getNearestCentroidWithoutUpdate(samplePoint);
+		nearestCentroid = this.centroids[nearestCentroidIndex];
+		sum += Math.pow(nearestCentroid.euclideanDistanceTo(samplePoint), 2);
+		dxs[i] = sum;
+	}
+	for(int i =0;i<=j;i++){
+		dxs[i] = Double.MAX_VALUE;
 	}
 
-	public void precomputeWeight() {
-		for(Point p1:initFeatures){
-			for(Point p2:initFeatures){
-				if(p1!=p2){
-					p1.dist.put(p2, euclideanDistance(p1,p2));
-					p1.pq.add(p2);
-				}
+	return dxs;
+}
+
+protected double computeDxsSum() {
+	double[] dxs = new double[this.initFeatures.size()];
+
+	//int totalSum = 0;
+	int sum = 0;
+	Point samplePoint;
+	int nearestCentroidIndex;
+	Center nearestCentroid;
+	for (int i = 0; i < this.initFeatures.size(); i++) {
+		samplePoint = this.initFeatures.get(i);
+		nearestCentroidIndex = this.getNearestCentroidWithoutUpdate(samplePoint);
+		nearestCentroid = this.centroids[nearestCentroidIndex];
+		sum += Math.pow(nearestCentroid.euclideanDistanceTo(samplePoint), 2);
+		//dxs[i] = sum;
+	}
+
+	return sum;
+}
+
+public void reset() {
+	this.counts = null;
+	this.centroids = null;
+	this.initFeatures = new ArrayList<Point>();
+}
+
+public void initBuffer(){
+	newcounts = new ArrayList<Long>();
+	newCentroid = new ArrayList<double[]>();
+
+	for(int i = 0;i<nbCluster;i++){
+		newcounts.add(0L);
+		newCentroid.add(new double[2]);
+	}
+
+}
+
+public void getDistribution(ArrayList<Point> points, Center[] centroids){
+
+}
+
+public void precomputeWeight() {
+	for(Point p1:initFeatures){
+		for(Point p2:initFeatures){
+			if(p1!=p2){
+				p1.dist.put(p2, MathUtil.euclideanDistance(p1,p2));
+				p1.pq.add(p2);
 			}
-			System.out.println("ehe");
 		}
-		// TODO Auto-generated method stub
-		
+		System.out.println("ehe");
 	}
-		
+	// TODO Auto-generated method stub
+
+}
+
+public void printAllCentroids(){
+	for(int i = 0;i<nbCluster;i++){
+		System.out.println(centroids[i]);
+	}
+}
+
 }

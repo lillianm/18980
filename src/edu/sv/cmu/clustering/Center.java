@@ -18,6 +18,10 @@ public class Center {
 		this.longitude = point.longitude;
 	}
 
+	public Center(double lat,double lon){
+		this.latitude = lat;
+		this.longitude = lon;
+	}
 	public double euclideanDistanceTo(Point p){
 		// the longitude of -180 to +180
 		// latitude is -90 to +90

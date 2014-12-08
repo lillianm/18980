@@ -30,5 +30,6 @@ public class Point {
 		return "Point:" +" latitude: " + this.latitude + " longitude: "+ this.longitude+ " minDist: " + this.minDist;
 	}
 
+	
 
 }
