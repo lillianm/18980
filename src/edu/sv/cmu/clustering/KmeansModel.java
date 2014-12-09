@@ -6,13 +6,17 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.sv.cmu.clustering.util.MathUtil;
+import edu.sv.cmu.clustering.util.Util;
 
 //import edu.sv.cmu.clustering.exception.ClusterException;
 
@@ -184,9 +188,9 @@ public class KmeansModel {
 
 			// Add one new data point as a center.
 			double r = random.nextDouble() * dxs[dxs.length - 1];
-			
+
 			for (int i = 0; i < dxs.length; i++) {
-				
+
 				if (dxs[i] >= r) {
 					boolean duplicated  = false;
 					Point candidate = initFeatures.get(i);
@@ -209,91 +213,122 @@ public class KmeansModel {
 
 
 
-/**
- * For each features in {@link KMeans#initFeatures}, compute D(x), the
- * distance between x and the nearest center that has already been chosen.
- * 
- * @return
- */
-protected double[] computeDxs(int j) {
-	double[] dxs = new double[this.initFeatures.size()];
+	/**
+	 * For each features in {@link KMeans#initFeatures}, compute D(x), the
+	 * distance between x and the nearest center that has already been chosen.
+	 * 
+	 * @return
+	 */
+	protected double[] computeDxs(int j) {
+		double[] dxs = new double[this.initFeatures.size()];
 
-	int sum = 0;
-	Point samplePoint;
-	int nearestCentroidIndex;
-	Center nearestCentroid;
-	for (int i = 0; i < this.initFeatures.size(); i++) {
-		samplePoint = this.initFeatures.get(i);
-		nearestCentroidIndex = this.getNearestCentroidWithoutUpdate(samplePoint);
-		nearestCentroid = this.centroids[nearestCentroidIndex];
-		sum += Math.pow(nearestCentroid.euclideanDistanceTo(samplePoint), 2);
-		dxs[i] = sum;
-	}
-	for(int i =0;i<=j;i++){
-		dxs[i] = Double.MAX_VALUE;
-	}
+		int sum = 0;
+		Point samplePoint;
+		int nearestCentroidIndex;
+		Center nearestCentroid;
+		for (int i = 0; i < this.initFeatures.size(); i++) {
+			samplePoint = this.initFeatures.get(i);
+			nearestCentroidIndex = this.getNearestCentroidWithoutUpdate(samplePoint);
+			nearestCentroid = this.centroids[nearestCentroidIndex];
+			sum += Math.pow(nearestCentroid.euclideanDistanceTo(samplePoint), 2);
+			dxs[i] = sum;
+		}
+		for(int i =0;i<=j;i++){
+			dxs[i] = Double.MAX_VALUE;
+		}
 
-	return dxs;
-}
-
-protected double computeDxsSum() {
-	double[] dxs = new double[this.initFeatures.size()];
-
-	//int totalSum = 0;
-	int sum = 0;
-	Point samplePoint;
-	int nearestCentroidIndex;
-	Center nearestCentroid;
-	for (int i = 0; i < this.initFeatures.size(); i++) {
-		samplePoint = this.initFeatures.get(i);
-		nearestCentroidIndex = this.getNearestCentroidWithoutUpdate(samplePoint);
-		nearestCentroid = this.centroids[nearestCentroidIndex];
-		sum += Math.pow(nearestCentroid.euclideanDistanceTo(samplePoint), 2);
-		//dxs[i] = sum;
+		return dxs;
 	}
 
-	return sum;
-}
+	protected double computeDxsSum() {
+		double[] dxs = new double[this.initFeatures.size()];
 
-public void reset() {
-	this.counts = null;
-	this.centroids = null;
-	this.initFeatures = new ArrayList<Point>();
-}
+		//int totalSum = 0;
+		int sum = 0;
+		Point samplePoint;
+		int nearestCentroidIndex;
+		Center nearestCentroid;
+		for (int i = 0; i < this.initFeatures.size(); i++) {
+			samplePoint = this.initFeatures.get(i);
+			nearestCentroidIndex = this.getNearestCentroidWithoutUpdate(samplePoint);
+			nearestCentroid = this.centroids[nearestCentroidIndex];
+			sum += Math.pow(nearestCentroid.euclideanDistanceTo(samplePoint), 2);
+			//dxs[i] = sum;
+		}
 
-public void initBuffer(){
-	newcounts = new ArrayList<Long>();
-	newCentroid = new ArrayList<double[]>();
-
-	for(int i = 0;i<nbCluster;i++){
-		newcounts.add(0L);
-		newCentroid.add(new double[2]);
+		return sum;
 	}
 
-}
+	public void reset() {
+		this.counts = null;
+		this.centroids = null;
+		this.initFeatures = new ArrayList<Point>();
+	}
 
-public void getDistribution(ArrayList<Point> points, Center[] centroids){
+	public void initBuffer(){
+		newcounts = new ArrayList<Long>();
+		newCentroid = new ArrayList<double[]>();
 
-}
+		for(int i = 0;i<nbCluster;i++){
+			newcounts.add(0L);
+			newCentroid.add(new double[2]);
+		}
 
-public void precomputeWeight() {
-	for(Point p1:initFeatures){
-		for(Point p2:initFeatures){
-			if(p1!=p2){
-				p1.dist.put(p2, MathUtil.euclideanDistance(p1,p2));
-				p1.pq.add(p2);
+	}
+
+	public void getDistribution(ArrayList<Point> points, Center[] centroids){
+
+	}
+
+	public void precomputeWeight() {
+		for(Point p1:initFeatures){
+			for(Point p2:initFeatures){
+				if(p1!=p2){
+					p1.dist.put(p2, MathUtil.euclideanDistance(p1,p2));
+					p1.pq.add(p2);
+				}
+			}
+			System.out.println("ehe");
+		}
+		// TODO Auto-generated method stub
+
+	}
+
+	public void printAllCentroids(){
+		for(int i = 0;i<nbCluster;i++){
+			System.out.println(centroids[i]);
+		}
+	}
+
+	public void calculateTimeDistribution(){
+		for(Point point: initFeatures){
+			Center centroid = centroids[point.belongingId];
+			centroid.updateTimeDistribution(Util.getDateFromString(point.timeStamp));
+		}
+		for(int i = 0;i<nbCluster;i++){
+			centroids[i].printTimeDistribution();
+		}
+	}
+
+	public void calculateDailyDistribution(){
+		int prevLabel = -1;
+		int prevTime = 0;
+		LinkedHashMap<String, Integer> shiftMap = new LinkedHashMap<String, Integer>();
+		LinkedHashMap<Integer, Integer> timeMap = new LinkedHashMap<Integer, Integer>();
+		for(int i = 0;i<initFeatures.size(); i++){
+			Point point = initFeatures.get(i);
+			if(point.belongingId!=prevLabel){
+				Date date = Util.getDateFromString(point.timeStamp);
+				System.out.println(prevLabel+","+ point.belongingId);
+
+				Calendar c = Calendar.getInstance();
+				c.setTime(date);
+				shiftMap.put(c.get(Calendar.DAY_OF_WEEK)+" "+ c.get(Calendar.HOUR_OF_DAY) +":"+c.get(Calendar.MINUTE)+"", point.belongingId);
+				//timeMap.put()
+				prevLabel = point.belongingId;
 			}
 		}
-		System.out.println("ehe");
+		System.out.println(shiftMap);
 	}
-	// TODO Auto-generated method stub
-
-}
-
-public void printAllCentroids(){
-	for(int i = 0;i<nbCluster;i++){
-		System.out.println(centroids[i]);
-	}
-}
 
 }

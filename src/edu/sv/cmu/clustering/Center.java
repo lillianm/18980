@@ -9,7 +9,8 @@ public class Center {
 	public double latitude;
 	public double longitude;
 	private ArrayList<double[]> geoDistribution;
-	private ArrayList<double[]> timeDistribution;
+	public double[] timeDistribution = new double[24];
+	
 
 	public Center(){}
 
@@ -39,16 +40,20 @@ public class Center {
 		return "Center:" +" latitude: " + this.latitude + " longitude: "+ this.longitude;
 	}
 	
-	public void updateTimeDistribution(Point point){
-		SimpleDateFormat dateFormatParser = new SimpleDateFormat(Protocol.dateFormat);
-		try {
-			Date time = dateFormatParser.parse(point.timeStamp);
-			
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	public void updateTimeDistribution(Date date){
+		if(date == null){
+			System.out.println("Time formatting Error ");
 		}
 		
+		int hour = date.getHours();
+		timeDistribution[hour]++;
+	}
+	
+	public void printTimeDistribution(){
+		for(int i = 0;i<24;i++){
+			System.out.println(timeDistribution[i] + " ");
+		}
+		System.out.println("\n");
 	}
 
 }

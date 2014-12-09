@@ -6,25 +6,29 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.sv.cmu.clustering.Center;
 import edu.sv.cmu.clustering.KmeansModel;
 import edu.sv.cmu.clustering.Point;
+import edu.sv.cmu.clustering.Protocol;
 import edu.sv.cmu.clustering.eu.MapWindow;
 import edu.sv.cmu.clustering.eu.POI;
 import edu.sv.cmu.clustering.eu.Segment;
 
 public class Util {
 	public static Color[] colorList = {Color.RED, Color.BLUE, Color.YELLOW, Color.GREEN, Color.PINK, Color.ORANGE};
-
+	static SimpleDateFormat formater = new SimpleDateFormat(Protocol.dateFormat);
 	public static ArrayList<Point> readFeaturesFromFile(String filename){
 		ArrayList<Point> initFeatures = new ArrayList<Point>();
-		//Pattern POINT = Pattern.compile("^.*?(-?\\d+\\.\\d+)\\s+(-?\\d+\\.\\d+)$");
-		Pattern POINT = Pattern.compile(".+?(-?\\d+\\.\\d+).*(-+?\\d+\\.\\d+)$");
-				File file = new File(filename);//"/Users/yima/Documents/DeepAndroid/DataCollectService/src/edu/sv/cmu/clustering/test.txt");
+		
+		Pattern POINT = Pattern.compile("([\\d+|_]+).+?(-?\\d+\\.\\d+).*(-+?\\d+\\.\\d+)$");
+		File file = new File(filename);//"/Users/yima/Documents/DeepAndroid/DataCollectService/src/edu/sv/cmu/clustering/test.txt");
 
 		BufferedReader r;
 		try {
@@ -38,10 +42,11 @@ public class Util {
 				readCount++;
 				Matcher m = POINT.matcher(line);
 				if(m.matches()) {
-					double lon = Double.parseDouble(m.group(1));
-					double lat = Double.parseDouble(m.group(2));
+					String timeStamp = m.group(1);
+					double lat = Double.parseDouble(m.group(3));
+					double lon = Double.parseDouble(m.group(2));
 
-					cur = new Point("hehe",lat, lon);
+					cur = new Point(timeStamp,lat, lon);
 					initFeatures.add(cur);
 				} 
 			}
@@ -120,5 +125,17 @@ public class Util {
 
 
 	}
+	
+	public static Date getDateFromString(String timeStamp){
+		
+		try {
+			return formater.parse(timeStamp);
+		} catch (ParseException e) {
+			System.out.println(timeStamp);
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 
 }

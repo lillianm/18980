@@ -1,10 +1,10 @@
 package edu.sv.cmu.clustering;
 
-import java.util.HashMap;
-import java.util.PriorityQueue;
 import java.util.*;
+import java.util.logging.SimpleFormatter;
 public class Point {
 	public String timeStamp;
+	public Date time;
 	public double latitude;
 	public double longitude;
 	public int belongingId = -1;
@@ -24,12 +24,14 @@ public class Point {
 		this.latitude = lat;
 		this.longitude = lot;
 
-			}
+	}
 	@Override
 	public String toString(){
 		return "Point:" +" latitude: " + this.latitude + " longitude: "+ this.longitude+ " minDist: " + this.minDist;
 	}
 
-	
+
+
+
 
 }

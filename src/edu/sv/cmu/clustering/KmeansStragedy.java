@@ -28,6 +28,8 @@ public class KmeansStragedy{
 		kmeansModel.initFeatures = Util.readFeaturesFromFile(filename);
 		//System.out.println(kmeansModel.initFeatures.size());
 		kmeansModel.initCentroids();
+		kmeansModel.initFeatures = Util.readFeaturesFromFile(filename);
+
 		kmeansModel.precomputeWeight();
 
 
@@ -189,9 +191,11 @@ public class KmeansStragedy{
 	}
 	public static void main(String[] args){
 
-		int k =4;
+		int k =6;
 		KmeansModel kmeansModel = new KmeansModel(k);
 		kmeansModel = classicKmeans(kmeansModel, "/Users/yima/Desktop/gps.txt");
+		kmeansModel.calculateTimeDistribution();
+		kmeansModel.calculateDailyDistribution();
 		//		kmeansModel = onlineKmeans(kmeansModel);
 		//		System.out.println(kmeansModel.computeDxsSum());
 		Util.plotResult(kmeansModel);
