@@ -62,4 +62,7 @@ public class MapWindow extends JFrame {
 	public void addPOI(POI poi) {
 		map.addPOI(poi);
 	}
+	public void addCircle(Circle circle){
+		map.addCircle(circle);
+	}
 }

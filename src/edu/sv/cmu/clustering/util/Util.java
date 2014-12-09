@@ -17,6 +17,7 @@ import edu.sv.cmu.clustering.Center;
 import edu.sv.cmu.clustering.KmeansModel;
 import edu.sv.cmu.clustering.Point;
 import edu.sv.cmu.clustering.Protocol;
+import edu.sv.cmu.clustering.eu.Circle;
 import edu.sv.cmu.clustering.eu.MapWindow;
 import edu.sv.cmu.clustering.eu.POI;
 import edu.sv.cmu.clustering.eu.Segment;
@@ -115,10 +116,13 @@ public class Util {
 			window.addSegment(new Segment(cp, cp, cc));
 
 		}
+		
 		for(int i = 0; i<kmeansModel.nbCluster; i++){
 			Center c = kmeansModel.centroids[i];
-			
-			window.addPOI(new POI(c.longitude, c.latitude, i+"", colorList[i]) );
+			POI newPOI = new POI(c.longitude, c.latitude, i+"", colorList[i]) ;
+			POI fPOI = new POI(c.furthestPoint.longitude, c.furthestPoint.latitude, i+"", colorList[i]) ;
+			window.addPOI(newPOI);
+			window.addCircle(new Circle(newPOI, fPOI, c.radius,colorList[i]));
 		}
 		
 		window.setVisible(true);
@@ -136,6 +140,7 @@ public class Util {
 		}
 		return null;
 	}
+	
 
 
 }

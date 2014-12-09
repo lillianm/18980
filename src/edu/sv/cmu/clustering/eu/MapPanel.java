@@ -25,6 +25,7 @@ import javax.swing.JPanel;
 class MapPanel extends JPanel {
 	private final List<Segment> segments = new ArrayList<Segment>();
 	private final List<Point> points = new ArrayList<Point>();
+	private final List<Circle> circles = new ArrayList<Circle>();
 	private final List<POI> pois = new ArrayList<POI>();
 	private double minEasting, maxEasting, minNorthing, maxNorthing;
 	private double oEasting, oNorthing;		// coordinates of the origin
@@ -79,11 +80,27 @@ class MapPanel extends JPanel {
 			int x = convertX(poi.getEasting());
 			int y = convertY(poi.getNorthing(), h);
 			g.setColor(poi.color);
-			g.fillOval(x-1, y-1, 10, 10);
-			
+			g.fillOval(x, y, 10, 10);
+			System.out.println(x+":"+y);
 			g.drawString("Centroid: " +poi.getLabel(), x, y);
-			//g.drawChars(poi., offset, length, x, y);
 		}
+		
+		for(Circle c: circles) {
+			
+			g.setColor(c.color);
+			System.out.println("drawCircle");
+			int x = convertX(c.center.getEasting());
+			int y = convertY(c.center.getNorthing(), h);
+			System.out.println(x+":"+y);
+
+			int fx = convertX(c.furthestPoint.getEasting());
+			int fy = convertY(c.furthestPoint.getNorthing(),h);
+			double radius = Math.sqrt((x-fx)*(x-fx) + (y-fy)*(y-fy)) *0.9;
+			Ellipse2D.Double circle = new Ellipse2D.Double(x-radius, y-radius, 2*radius, 2*radius);
+			g.draw(circle);
+			
+		}
+
 
 		// unit is the unit of the scale. It must be a power of ten, such that unit * scale in [25, 250]
 		double unit = Math.pow(10, Math.ceil(Math.log10(25/scale)));
@@ -114,7 +131,9 @@ class MapPanel extends JPanel {
 	public void addSegments(Collection<Segment> segments) {
 		for(Segment seg : segments) addSegment(seg);
 	}
-
+	public void addCircle(Circle circle){
+		this.circles.add(circle);
+	}
 	public synchronized void addPOI(POI poi) {
 		this.pois.add(poi);
 

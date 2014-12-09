@@ -10,7 +10,8 @@ public class Center {
 	public double longitude;
 	private ArrayList<double[]> geoDistribution;
 	public double[] timeDistribution = new double[24];
-	
+	public double radius = 0;
+	public Point furthestPoint = null;
 
 	public Center(){}
 

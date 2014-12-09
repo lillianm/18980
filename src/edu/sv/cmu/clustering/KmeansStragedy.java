@@ -191,11 +191,14 @@ public class KmeansStragedy{
 	}
 	public static void main(String[] args){
 
-		int k =6;
+		int k =4;
 		KmeansModel kmeansModel = new KmeansModel(k);
 		kmeansModel = classicKmeans(kmeansModel, "/Users/yima/Desktop/gps.txt");
 		kmeansModel.calculateTimeDistribution();
 		kmeansModel.calculateDailyDistribution();
+		kmeansModel.calculateRadius();
+		System.out.println(kmeansModel.centroids[0].radius);
+
 		//		kmeansModel = onlineKmeans(kmeansModel);
 		//		System.out.println(kmeansModel.computeDxsSum());
 		Util.plotResult(kmeansModel);

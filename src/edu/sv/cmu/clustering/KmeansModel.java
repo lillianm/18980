@@ -300,6 +300,15 @@ public class KmeansModel {
 		}
 	}
 
+	public void calculateRadius(){
+		for(Point point: initFeatures){
+			if(centroids[point.belongingId].radius<= point.minDist){
+				centroids[point.belongingId].furthestPoint = point;
+				centroids[point.belongingId].radius = point.minDist;
+			}
+			
+		}
+	}
 	public void calculateTimeDistribution(){
 		for(Point point: initFeatures){
 			Center centroid = centroids[point.belongingId];
