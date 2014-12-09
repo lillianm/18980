@@ -27,8 +27,8 @@ public class KmeansModel {
 	public List<Long> counts = null;
 	public List<Long> newcounts = null;
 	public List<double[]> newCentroid = null;
-	public Center[] centroids;
-	public List<Point> initFeatures = new ArrayList<Point>();
+	public Centroid[] centroids;
+	public List<GeoPoint> initFeatures = new ArrayList<GeoPoint>();
 	public Integer nbCluster;
 
 	public KmeansModel(Integer nbCluster) {
@@ -36,12 +36,12 @@ public class KmeansModel {
 
 	}
 
-	protected int getNearestCentroidWithoutUpdate(Point p) {
+	protected int getNearestCentroidWithoutUpdate(GeoPoint p) {
 		// Find nearest centroid
 		Integer nearestCentroidIndex = p.belongingId;
 
 		Double minDistance = Double.MAX_VALUE;
-		Center currentCentroid;
+		Centroid currentCentroid;
 		Double currentDistance;
 		for (int i = 0; i < this.centroids.length; i++) {
 			currentCentroid = this.centroids[i];
@@ -57,11 +57,11 @@ public class KmeansModel {
 		return nearestCentroidIndex;
 	}
 
-	protected int getNearestCentroid(Point point) {
+	protected int getNearestCentroid(GeoPoint point) {
 
 		int nearestCentroidIndex = point.belongingId;
 
-		Center currentCentroid;
+		Centroid currentCentroid;
 		Double currentDistance;
 
 		// looping through all centroids 
@@ -85,7 +85,7 @@ public class KmeansModel {
 
 	}
 
-	public Integer updateCenter(Point point) {
+	public Integer updateCenter(GeoPoint point) {
 		if (!this.isReady()) {
 			//this.initIfPossible(features);
 			return null;
@@ -105,21 +105,21 @@ public class KmeansModel {
 	}
 
 	/* return the updatedCenter*/
-	public Center updateCentroidValue(int centroidIndex, Point point){
-		Center center = centroids[centroidIndex];
+	public Centroid updateCentroidValue(int centroidIndex, GeoPoint point){
+		Centroid center = centroids[centroidIndex];
 		long count = this.counts.get(centroidIndex);
 		center.latitude += ( point.latitude - center.latitude)/count;
 		center.longitude += ( point.longitude - point.longitude)/count;
 		return center;
 	}
 
-	public double[] distToAllCenters(Point point) {
+	public double[] distToAllCenters(GeoPoint point) {
 		if (!this.isReady()) {
 			throw new IllegalStateException("KMeans is not ready yet");
 		}
 
 		double[] dist = new double[this.nbCluster];
-		Center currentCentroid;
+		Centroid currentCentroid;
 		for (int i = 0; i < this.nbCluster; i++) {
 			currentCentroid = this.centroids[i];
 			dist[i] = currentCentroid.euclideanDistanceTo(point);
@@ -128,7 +128,7 @@ public class KmeansModel {
 		return dist;
 	}
 
-	public Center[] getCentroids() {
+	public Centroid[] getCentroids() {
 		return this.centroids;
 	}
 
@@ -138,7 +138,7 @@ public class KmeansModel {
 		return countsReady && centroidsReady;
 	}
 
-	protected void initIfPossible(Point point) {
+	protected void initIfPossible(GeoPoint point) {
 		this.initFeatures.add(point);
 
 		// magic number : 10 ??!
@@ -150,9 +150,9 @@ public class KmeansModel {
 		double[] dxs = new double[this.initFeatures.size()];
 
 		int sum = 0;
-		Point features;
+		GeoPoint features;
 		int nearestCentroidIndex;
-		Center nearestCentroid;
+		Centroid nearestCentroid;
 		for (int i = 0; i < this.initFeatures.size(); i++) {
 			features = this.initFeatures.get(i);
 			nearestCentroidIndex = this.getNearestCentroidWithoutUpdate(features);
@@ -171,13 +171,13 @@ public class KmeansModel {
 			this.counts.add(0L);
 		}
 
-		this.centroids = new Center[this.nbCluster];
+		this.centroids = new Centroid[this.nbCluster];
 
 		Random random = new Random();
 
 		// Choose one centroid uniformly at random from among the data points.
 		//generate centroid
-		Center firstCentroid = new Center(this.initFeatures.remove(random.nextInt(this.initFeatures.size())));
+		Centroid firstCentroid = new Centroid(this.initFeatures.remove(random.nextInt(this.initFeatures.size())));
 		this.centroids[0] = firstCentroid;
 
 		double[] dxs;
@@ -193,7 +193,7 @@ public class KmeansModel {
 
 				if (dxs[i] >= r) {
 					boolean duplicated  = false;
-					Point candidate = initFeatures.get(i);
+					GeoPoint candidate = initFeatures.get(i);
 					for(int ii = 0;ii<j;ii++){
 						if(candidate.latitude == centroids[ii].latitude && candidate.longitude == centroids[ii].longitude){
 							duplicated = true;
@@ -201,7 +201,7 @@ public class KmeansModel {
 						}
 					}
 					if(duplicated){continue;}
-					Center newCenter = new Center(this.initFeatures.remove(i));
+					Centroid newCenter = new Centroid(this.initFeatures.remove(i));
 					this.centroids[j] = newCenter;
 					break;
 				}
@@ -223,9 +223,9 @@ public class KmeansModel {
 		double[] dxs = new double[this.initFeatures.size()];
 
 		int sum = 0;
-		Point samplePoint;
+		GeoPoint samplePoint;
 		int nearestCentroidIndex;
-		Center nearestCentroid;
+		Centroid nearestCentroid;
 		for (int i = 0; i < this.initFeatures.size(); i++) {
 			samplePoint = this.initFeatures.get(i);
 			nearestCentroidIndex = this.getNearestCentroidWithoutUpdate(samplePoint);
@@ -245,9 +245,9 @@ public class KmeansModel {
 
 		//int totalSum = 0;
 		int sum = 0;
-		Point samplePoint;
+		GeoPoint samplePoint;
 		int nearestCentroidIndex;
-		Center nearestCentroid;
+		Centroid nearestCentroid;
 		for (int i = 0; i < this.initFeatures.size(); i++) {
 			samplePoint = this.initFeatures.get(i);
 			nearestCentroidIndex = this.getNearestCentroidWithoutUpdate(samplePoint);
@@ -262,7 +262,7 @@ public class KmeansModel {
 	public void reset() {
 		this.counts = null;
 		this.centroids = null;
-		this.initFeatures = new ArrayList<Point>();
+		this.initFeatures = new ArrayList<GeoPoint>();
 	}
 
 	public void initBuffer(){
@@ -276,13 +276,13 @@ public class KmeansModel {
 
 	}
 
-	public void getDistribution(ArrayList<Point> points, Center[] centroids){
+	public void getDistribution(ArrayList<GeoPoint> points, Centroid[] centroids){
 
 	}
 
 	public void precomputeWeight() {
-		for(Point p1:initFeatures){
-			for(Point p2:initFeatures){
+		for(GeoPoint p1:initFeatures){
+			for(GeoPoint p2:initFeatures){
 				if(p1!=p2){
 					p1.dist.put(p2, MathUtil.euclideanDistance(p1,p2));
 					p1.pq.add(p2);
@@ -301,7 +301,7 @@ public class KmeansModel {
 	}
 
 	public void calculateRadius(){
-		for(Point point: initFeatures){
+		for(GeoPoint point: initFeatures){
 			if(centroids[point.belongingId].radius<= point.minDist){
 				centroids[point.belongingId].furthestPoint = point;
 				centroids[point.belongingId].radius = point.minDist;
@@ -310,8 +310,8 @@ public class KmeansModel {
 		}
 	}
 	public void calculateTimeDistribution(){
-		for(Point point: initFeatures){
-			Center centroid = centroids[point.belongingId];
+		for(GeoPoint point: initFeatures){
+			Centroid centroid = centroids[point.belongingId];
 			centroid.updateTimeDistribution(Util.getDateFromString(point.timeStamp));
 		}
 		for(int i = 0;i<nbCluster;i++){
@@ -325,7 +325,7 @@ public class KmeansModel {
 		LinkedHashMap<String, Integer> shiftMap = new LinkedHashMap<String, Integer>();
 		LinkedHashMap<Integer, Integer> timeMap = new LinkedHashMap<Integer, Integer>();
 		for(int i = 0;i<initFeatures.size(); i++){
-			Point point = initFeatures.get(i);
+			GeoPoint point = initFeatures.get(i);
 			if(point.belongingId!=prevLabel){
 				Date date = Util.getDateFromString(point.timeStamp);
 				System.out.println(prevLabel+","+ point.belongingId);

@@ -40,9 +40,9 @@ public class KmeansStragedy{
 		}
 
 		for(int id = 0;id <k;id++){
-			Point cur = kmeansModel.initFeatures.get(id);
+			GeoPoint cur = kmeansModel.initFeatures.get(id);
 			for(int i = 0;i<neighbors;i++){
-				Point n = cur.pq.poll();
+				GeoPoint n = cur.pq.poll();
 				n.belongingId = kmeansModel.getNearestCentroid(n);
 				kmeansModel.counts.set(n.belongingId, kmeansModel.counts.get(n.belongingId) +1);
 				cur.pq.add(n);
@@ -60,10 +60,10 @@ public class KmeansStragedy{
 			}
 
 			for(int id = 0;id <k;id++){
-				Point cur = kmeansModel.initFeatures.get(id);
+				GeoPoint cur = kmeansModel.initFeatures.get(id);
 
 				for(int i = 0;i<neighbors;i++){
-					Point n = cur.pq.poll();
+					GeoPoint n = cur.pq.poll();
 					if(n !=null){int nearestCentroidIndex = kmeansModel.getNearestCentroid(n);
 					if(n.belongingId!=nearestCentroidIndex){
 						n.belongingId = nearestCentroidIndex;
@@ -92,7 +92,7 @@ public class KmeansStragedy{
 		kmeansModel.initFeatures = Util.readFeaturesFromFile(filename);
 		kmeansModel.initCentroids();
 		System.out.println(kmeansModel.centroids[2]);
-		for(Point p: kmeansModel.initFeatures){
+		for(GeoPoint p: kmeansModel.initFeatures){
 			int nearestCentroidIndex = kmeansModel.getNearestCentroid(p);
 			if(nearestCentroidIndex == -1) System.out.println(p);
 			p.belongingId = nearestCentroidIndex;
@@ -138,7 +138,7 @@ public class KmeansStragedy{
 		
 		int k = kmeansModel.nbCluster;
 
-		ArrayList<Point> features = Util.readFeaturesFromFile(filename);
+		ArrayList<GeoPoint> features = Util.readFeaturesFromFile(filename);
 		kmeansModel.initFeatures = features;
 		kmeansModel.initCentroids();
 		kmeansModel.printAllCentroids();
@@ -147,7 +147,7 @@ public class KmeansStragedy{
 		while(changeCount >=1){
 			changeCount = 0;
 			kmeansModel.initBuffer();
-			for(Point p: kmeansModel.initFeatures){
+			for(GeoPoint p: kmeansModel.initFeatures){
 				int nearestCentroidIndex = kmeansModel.getNearestCentroid(p);
 				//System.out.println(nearestCentroidIndex);
 				kmeansModel.newcounts.set(nearestCentroidIndex, kmeansModel.newcounts.get(nearestCentroidIndex) +1);
@@ -166,7 +166,7 @@ public class KmeansStragedy{
 			for(int index = 0;index<k;index++){
 				double[] d = kmeansModel.newCentroid.get(index);
 				long cnt = kmeansModel.newcounts.get(index);
-				kmeansModel.centroids[index]= new Center(d[0]/cnt, d[1]/cnt);
+				kmeansModel.centroids[index]= new Centroid(d[0]/cnt, d[1]/cnt);
 			}
 			kmeansModel.counts = kmeansModel.newcounts;
 			System.out.println(kmeansModel.counts);

@@ -5,26 +5,26 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class Center {
+public class Centroid {
 	public double latitude;
 	public double longitude;
 	private ArrayList<double[]> geoDistribution;
 	public double[] timeDistribution = new double[24];
 	public double radius = 0;
-	public Point furthestPoint = null;
+	public GeoPoint furthestPoint = null;
 
-	public Center(){}
+	public Centroid(){}
 
-	public Center(Point point){
+	public Centroid(GeoPoint point){
 		this.latitude = point.latitude;
 		this.longitude = point.longitude;
 	}
 
-	public Center(double lat,double lon){
+	public Centroid(double lat,double lon){
 		this.latitude = lat;
 		this.longitude = lon;
 	}
-	public double euclideanDistanceTo(Point p){
+	public double euclideanDistanceTo(GeoPoint p){
 		// the longitude of -180 to +180
 		// latitude is -90 to +90
 

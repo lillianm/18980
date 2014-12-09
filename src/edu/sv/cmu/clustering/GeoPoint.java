@@ -2,24 +2,24 @@ package edu.sv.cmu.clustering;
 
 import java.util.*;
 import java.util.logging.SimpleFormatter;
-public class Point {
+public class GeoPoint {
 	public String timeStamp;
 	public Date time;
 	public double latitude;
 	public double longitude;
 	public int belongingId = -1;
 	public double minDist = Double.MAX_VALUE;
-	HashMap<Point, Double> dist = new HashMap<Point, Double>();
-	PriorityQueue<Point> pq = new PriorityQueue<Point>(100, new Comparator<Point>(){
+	HashMap<GeoPoint, Double> dist = new HashMap<GeoPoint, Double>();
+	PriorityQueue<GeoPoint> pq = new PriorityQueue<GeoPoint>(100, new Comparator<GeoPoint>(){
 		@Override
-		public int compare(Point p1, Point p2){
+		public int compare(GeoPoint p1, GeoPoint p2){
 			return (int) (dist.get(p1) - dist.get(p2));
 		}
 	});
 
 
 	// throw exception to check the validation
-	public Point(String time, double lat, double lot){
+	public GeoPoint(String time, double lat, double lot){
 		this.timeStamp = time;
 		this.latitude = lat;
 		this.longitude = lot;

@@ -19,9 +19,9 @@ public class Kmeans implements Serializable {
 
 	public List<Long> counts = null;
 	public List<Long> newcounts = null;
-	private Center[] centroids;
-	public List<Point> initFeatures = new ArrayList<Point>();
-	private HashMap<Point, Integer> belongingId = new HashMap<Point, Integer>();
+	private Centroid[] centroids;
+	public List<GeoPoint> initFeatures = new ArrayList<GeoPoint>();
+	private HashMap<GeoPoint, Integer> belongingId = new HashMap<GeoPoint, Integer>();
 	private Integer nbCluster;
 
 	public Kmeans(Integer nbCluster) {
@@ -29,7 +29,7 @@ public class Kmeans implements Serializable {
 
 	}
 
-	public Integer classify(Point point) {
+	public Integer classify(GeoPoint point) {
 		if (!this.isReady()) {
 			throw new IllegalStateException("KMeans is not ready yet");
 		}
@@ -39,12 +39,12 @@ public class Kmeans implements Serializable {
 		return nearestCentroidIndex;
 	}
 
-	protected int getNearestCentroidWithoutUpdate(Point p) {
+	protected int getNearestCentroidWithoutUpdate(GeoPoint p) {
 		// Find nearest centroid
 		Integer nearestCentroidIndex = p.belongingId;
 
 		Double minDistance = Double.MAX_VALUE;
-		Center currentCentroid;
+		Centroid currentCentroid;
 		Double currentDistance;
 		for (int i = 0; i < this.centroids.length; i++) {
 			currentCentroid = this.centroids[i];
@@ -64,12 +64,12 @@ public class Kmeans implements Serializable {
 		return nearestCentroidIndex;
 	}
 
-	protected int getNearestCentroid(Point p) {
+	protected int getNearestCentroid(GeoPoint p) {
 		// Find nearest centroid
 		Integer nearestCentroidIndex = p.belongingId;
 
 		//Double minDistance = p.minDist;
-		Center currentCentroid;
+		Centroid currentCentroid;
 		Double currentDistance;
 		for (int i = 0; i < this.centroids.length; i++) {
 			currentCentroid = this.centroids[i];
@@ -92,7 +92,7 @@ public class Kmeans implements Serializable {
 	}
 
 	/* calculate distance */
-	public double euclideanDistance(Point p1, Point p2){
+	public double euclideanDistance(GeoPoint p1, GeoPoint p2){
 		// the longitude of -180 to +180
 		// latitude is -90 to +90
 
@@ -108,7 +108,7 @@ public class Kmeans implements Serializable {
 
 
 
-	public Integer updateCenter(Point point) {
+	public Integer updateCenter(GeoPoint point) {
 		if (!this.isReady()) {
 			//this.initIfPossible(features);
 			return null;
@@ -128,21 +128,21 @@ public class Kmeans implements Serializable {
 	}
 
 	/* return the updatedCenter*/
-	public Center updateCentroidValue(int centroidIndex, Point point){
-		Center center = centroids[centroidIndex];
+	public Centroid updateCentroidValue(int centroidIndex, GeoPoint point){
+		Centroid center = centroids[centroidIndex];
 		long count = this.counts.get(centroidIndex);
 		center.latitude += ( point.latitude - center.latitude)/count;
 		center.longitude += ( point.longitude - point.longitude)/count;
 		return center;
 	}
 
-	public double[] distToAllCenters(Point point) {
+	public double[] distToAllCenters(GeoPoint point) {
 		if (!this.isReady()) {
 			throw new IllegalStateException("KMeans is not ready yet");
 		}
 
 		double[] dist = new double[this.nbCluster];
-		Center currentCentroid;
+		Centroid currentCentroid;
 		for (int i = 0; i < this.nbCluster; i++) {
 			currentCentroid = this.centroids[i];
 			dist[i] = currentCentroid.euclideanDistanceTo(point);
@@ -151,7 +151,7 @@ public class Kmeans implements Serializable {
 		return dist;
 	}
 
-	public Center[] getCentroids() {
+	public Centroid[] getCentroids() {
 		return this.centroids;
 	}
 
@@ -161,7 +161,7 @@ public class Kmeans implements Serializable {
 		return countsReady && centroidsReady;
 	}
 
-	protected void initIfPossible(Point point) {
+	protected void initIfPossible(GeoPoint point) {
 		this.initFeatures.add(point);
 
 		// magic number : 10 ??!
@@ -182,20 +182,20 @@ public class Kmeans implements Serializable {
 			this.counts.add(0L);
 		}
 
-		this.centroids = new Center[this.nbCluster];
+		this.centroids = new Centroid[this.nbCluster];
 
 		Random random = new Random();
 
 		// Choose one centroid uniformly at random from among the data points.
 		//generate centroid
 		int randIndex = random.nextInt(this.initFeatures.size());
-		Point tmp = this.initFeatures.get(0);
+		GeoPoint tmp = this.initFeatures.get(0);
 		this.initFeatures.set(0, this.initFeatures.get(randIndex));
 		this.initFeatures.set(randIndex, tmp);
 		
-		final Point randPoint = this.initFeatures.remove(random.nextInt(this.initFeatures.size()));
+		final GeoPoint randPoint = this.initFeatures.remove(random.nextInt(this.initFeatures.size()));
 
-		this.centroids[0] = new Center(randPoint);
+		this.centroids[0] = new Centroid(randPoint);
 
 		double[] dxs;
 
@@ -204,16 +204,16 @@ public class Kmeans implements Serializable {
 			dxs = this.computeDxs(j);
 
 			// Add one new data point as a center.
-			Point nextRandPoint;
+			GeoPoint nextRandPoint;
 			double r = random.nextDouble() * dxs[dxs.length - 1];
 			for (int i = 0; i < dxs.length; i++) {
 				if (dxs[i] >= r) {
-					Point p = this.initFeatures.get(j);
+					GeoPoint p = this.initFeatures.get(j);
 					this.initFeatures.set(j, this.initFeatures.get(i));
 					this.initFeatures.set(i,p );
 
 					nextRandPoint = this.initFeatures.get(j);
-					this.centroids[j] = new Center(nextRandPoint);
+					this.centroids[j] = new Centroid(nextRandPoint);
 					break;
 				}
 			}
@@ -234,9 +234,9 @@ public class Kmeans implements Serializable {
 		double[] dxs = new double[this.initFeatures.size()];
 
 		int sum = 0;
-		Point samplePoint;
+		GeoPoint samplePoint;
 		int nearestCentroidIndex;
-		Center nearestCentroid;
+		Centroid nearestCentroid;
 		for (int i = 0; i < this.initFeatures.size(); i++) {
 			samplePoint = this.initFeatures.get(i);
 			nearestCentroidIndex = this.getNearestCentroidWithoutUpdate(samplePoint);
@@ -255,7 +255,7 @@ public class Kmeans implements Serializable {
 	public void reset() {
 		this.counts = null;
 		this.centroids = null;
-		this.initFeatures = new ArrayList<Point>();
+		this.initFeatures = new ArrayList<GeoPoint>();
 	}
 
 

@@ -13,9 +13,9 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import edu.sv.cmu.clustering.Center;
+import edu.sv.cmu.clustering.Centroid;
 import edu.sv.cmu.clustering.KmeansModel;
-import edu.sv.cmu.clustering.Point;
+import edu.sv.cmu.clustering.GeoPoint;
 import edu.sv.cmu.clustering.Protocol;
 import edu.sv.cmu.clustering.eu.Circle;
 import edu.sv.cmu.clustering.eu.MapWindow;
@@ -25,8 +25,8 @@ import edu.sv.cmu.clustering.eu.Segment;
 public class Util {
 	public static Color[] colorList = {Color.RED, Color.BLUE, Color.YELLOW, Color.GREEN, Color.PINK, Color.ORANGE};
 	static SimpleDateFormat formater = new SimpleDateFormat(Protocol.dateFormat);
-	public static ArrayList<Point> readFeaturesFromFile(String filename){
-		ArrayList<Point> initFeatures = new ArrayList<Point>();
+	public static ArrayList<GeoPoint> readFeaturesFromFile(String filename){
+		ArrayList<GeoPoint> initFeatures = new ArrayList<GeoPoint>();
 		
 		Pattern POINT = Pattern.compile("([\\d+|_]+).+?(-?\\d+\\.\\d+).*(-+?\\d+\\.\\d+)$");
 		File file = new File(filename);//"/Users/yima/Documents/DeepAndroid/DataCollectService/src/edu/sv/cmu/clustering/test.txt");
@@ -35,7 +35,7 @@ public class Util {
 		try {
 			r = new BufferedReader(new FileReader(file));
 			String line;
-			Point cur, prec = null;
+			GeoPoint cur, prec = null;
 			int readCount = 0;
 			int errCount = 0;
 			while((line = r.readLine()) != null) {
@@ -47,7 +47,7 @@ public class Util {
 					double lat = Double.parseDouble(m.group(3));
 					double lon = Double.parseDouble(m.group(2));
 
-					cur = new Point(timeStamp,lat, lon);
+					cur = new GeoPoint(timeStamp,lat, lon);
 					initFeatures.add(cur);
 				} 
 			}
@@ -68,8 +68,8 @@ public class Util {
 	}
 
 
-	public static ArrayList<Point> readNoGeoFeaturesFromFile(){
-		ArrayList<Point> initFeatures = new ArrayList<Point>();
+	public static ArrayList<GeoPoint> readNoGeoFeaturesFromFile(){
+		ArrayList<GeoPoint> initFeatures = new ArrayList<GeoPoint>();
 		Pattern POINT = Pattern.compile("^.*?(-?\\d+)\\s+(-?\\d+)$");
 		File file = new File("/Users/yima/Documents/DeepAndroid/DataCollectService/src/edu/sv/cmu/clustering/test2.txt");
 
@@ -77,7 +77,7 @@ public class Util {
 		try {
 			r = new BufferedReader(new FileReader(file));
 			String line;
-			Point cur, prec = null;
+			GeoPoint cur, prec = null;
 			int readCount = 0;
 			int errCount = 0;
 			while((line = r.readLine()) != null) {
@@ -88,7 +88,7 @@ public class Util {
 					double lat = Double.parseDouble(m.group(1));
 					double lon = Double.parseDouble(m.group(2));
 					System.out.println(lon + ":"+lat);
-					cur = new Point("hehe",lat, lon);
+					cur = new GeoPoint("hehe",lat, lon);
 					initFeatures.add(cur);
 				} 
 			}
@@ -109,7 +109,7 @@ public class Util {
 	}
 	public static void plotResult(KmeansModel kmeansModel){
 		MapWindow window = new MapWindow();
-		for(Point p:kmeansModel.initFeatures){
+		for(GeoPoint p:kmeansModel.initFeatures){
 			edu.sv.cmu.clustering.eu.Point cp = new edu.sv.cmu.clustering.eu.Point(p.longitude,p.latitude);
 			Color cc = colorList[p.belongingId];
 
@@ -118,7 +118,7 @@ public class Util {
 		}
 		
 		for(int i = 0; i<kmeansModel.nbCluster; i++){
-			Center c = kmeansModel.centroids[i];
+			Centroid c = kmeansModel.centroids[i];
 			POI newPOI = new POI(c.longitude, c.latitude, i+"", colorList[i]) ;
 			POI fPOI = new POI(c.furthestPoint.longitude, c.furthestPoint.latitude, i+"", colorList[i]) ;
 			window.addPOI(newPOI);
